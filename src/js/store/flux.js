@@ -1,45 +1,38 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			vehicles: [],
+			next: "https://www.swapi.tech/api/vehicles/",
+			favourites: [],
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
+			getVehicles: async() => {
 				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
+				const response = await fetch(store.next);
+				const vehiclesAPI = await response.json();
+				let vehiclesfullAPI = [];
+				setStore({next:vehiclesAPI.next});
+				
+				for (let j=0; j<vehiclesAPI.results.length; j++){
+					const  response = await fetch("https://www.swapi.tech/api/vehicles/"+vehiclesAPI.results[j].uid);
+					const vehicleAPI = await response.json();
+					setStore({vehicles:[...getStore().vehicles,vehicleAPI.result]});
+				}
+			//	setStore({vehicles:[...getStore().vehicles,vehiclesfullAPI]});
+				console.log(getStore().vehicles);
+			},
+			updateFavourites: (e)=>{
+				const favourites = getStore().favourites;
+				if (!favourites.includes(e)) {
+				  setStore({ favourites: [...getStore().favourites, e] })
+				  true;
+				} else {
+				  setStore({ favourites: favourites.filter((elem) => elem !== e) })
+				  false;
+				}
+			}
 			}
 		}
 	};
-};
 
 export default getState;
